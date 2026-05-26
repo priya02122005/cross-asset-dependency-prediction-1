@@ -1,81 +1,154 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, request
+
 import pandas as pd
-import joblib
+
 from sklearn.ensemble import RandomForestRegressor
+
+from sklearn.model_selection import train_test_split
 
 app = Flask(__name__)
 
-# Home Page
+# HOME PAGE
+
 @app.route("/")
 def home():
-    return render_template("index.html")
+
+    return render_template(
+        "index.html"
+    )
 
 
-# About Page
+# ABOUT PAGE
+
 @app.route("/about")
 def about():
-    return render_template("about.html")
+
+    return render_template(
+        "about.html"
+    )
 
 
-# Prediction Page
-@app.route("/predict")
+# PREDICTION PAGE
+
+@app.route(
+    "/predict",
+    methods=["GET", "POST"]
+)
 def predict():
 
-    # Load features
-    df = pd.read_csv(
-        "data/features.csv",
-        index_col=0
-    )
+    prediction = None
 
-    # Create target
-    df["target"] = df["AAPL"].shift(-1)
+    signal = None
 
-    df.dropna(inplace=True)
+    confidence = None
 
-    # Features and target
-    X = df.drop(columns=["target"])
-    y = df["target"]
+    if request.method == "POST":
 
-    # Train model
-    model = RandomForestRegressor(
-        n_estimators=100,
-        random_state=42
-    )
+        stock = request.form["stock"].upper()
 
-    model.fit(X, y)
+        # LOAD FEATURES
 
-    # Predict next return
-    prediction = model.predict(
-        X.tail(1)
-    )[0]
+        df = pd.read_csv(
+            "data/features.csv",
+            index_col=0
+        )
+
+        # CHECK STOCK EXISTS
+
+        if stock in df.columns:
+
+            # TARGET
+
+            df["target"] = (
+                df[stock].shift(-1)
+            )
+
+            df.dropna(inplace=True)
+
+            # FEATURES
+
+            X = df.drop(
+                columns=["target"]
+            )
+
+            y = df["target"]
+
+            # TRAIN TEST SPLIT
+
+            X_train, X_test, y_train, y_test = train_test_split(
+                X,
+                y,
+                test_size=0.2,
+                random_state=42
+            )
+
+            # FAST MODEL
+
+            model = RandomForestRegressor(
+                n_estimators=20,
+                random_state=42
+            )
+
+            model.fit(
+                X_train,
+                y_train
+            )
+
+            # PREDICTION
+
+            prediction = model.predict(
+                X.tail(1)
+            )[0]
+
+            prediction = round(
+                prediction,
+                5
+            )
+
+            # SIGNAL
+
+            if prediction > 0:
+
+                signal = "BUY 📈"
+
+            else:
+
+                signal = "SELL 📉"
+
+            # CONFIDENCE
+
+            confidence = round(
+                abs(prediction) * 100,
+                2
+            )
 
     return render_template(
         "predict.html",
-        prediction=round(prediction, 5)
+        prediction=prediction,
+        signal=signal,
+        confidence=confidence
     )
 
 
-# Results Page
+# RESULTS PAGE
+
 @app.route("/results")
 def results():
 
-    # Load returns
     df = pd.read_csv(
         "data/returns.csv",
         index_col=0
     )
 
-    # Latest returns
     latest_returns = df.iloc[-1]
 
-    # Rank stocks
     ranked = latest_returns.sort_values(
         ascending=False
     )
 
-    outperformers = ranked.head()
+    outperformers = ranked.head(3)
 
-    underperformers = ranked.tail()
+    underperformers = ranked.tail(3)
 
     return render_template(
         "results.html",
@@ -84,5 +157,8 @@ def results():
     )
 
 
+# RUN APP
+
 if __name__ == "__main__":
+
     app.run(debug=True)
