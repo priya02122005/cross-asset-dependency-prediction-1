@@ -1,36 +1,86 @@
-import yfinance as yf
-import pandas as pd
-import os
+print("\n================================")
+print("CROSS ASSET DEPENDENCY SYSTEM")
+print("================================")
 
-# Create data folder if not exists
-os.makedirs("data", exist_ok=True)
+print("\nStarting Project Pipeline...\n")
 
-# Stock list
-stocks = [
-    "AAPL",
-    "MSFT",
-    "TSLA",
-    "NVDA",
-    "GOOGL",
-    "AMZN"
-]
+# -----------------------------
+# STEP 1 : DATA COLLECTION
+# -----------------------------
+print("STEP 1 : DATA COLLECTION\n")
 
-# Download stock data
-data = yf.download(
-    stocks,
-    start="2020-01-01",
-    end="2025-01-01"
-)
+exec(open(
+    "src/data_collection.py"
+).read())
 
-# Extract close prices
-close_prices = data["Close"]
+# -----------------------------
+# STEP 2 : PREPROCESSING
+# -----------------------------
+print("\nSTEP 2 : PREPROCESSING\n")
 
-# Display sample
-print("\nStock Price Data:\n")
+exec(open(
+    "src/preprocessing.py"
+).read())
 
-print(close_prices.head())
+# -----------------------------
+# STEP 3 : FEATURE ENGINEERING
+# -----------------------------
+print("\nSTEP 3 : FEATURE ENGINEERING\n")
 
-# Save dataset
-close_prices.to_csv("data/stocks.csv")
+exec(open(
+    "src/feature_engineering.py"
+).read())
 
-print("\nstocks.csv saved successfully")
+# -----------------------------
+# STEP 4 : DEPENDENCY ANALYSIS
+# -----------------------------
+print("\nSTEP 4 : DEPENDENCY ANALYSIS\n")
+
+exec(open(
+    "src/dependency_analysis.py"
+).read())
+
+# -----------------------------
+# STEP 5 : MODEL TRAINING
+# -----------------------------
+print("\nSTEP 5 : MODEL TRAINING\n")
+
+exec(open(
+    "src/model_training.py"
+).read())
+
+# -----------------------------
+# STEP 6 : EVALUATION
+# -----------------------------
+print("\nSTEP 6 : EVALUATION\n")
+
+exec(open(
+    "src/evaluation.py"
+).read())
+
+# -----------------------------
+# STEP 7 : ASSET RANKING
+# -----------------------------
+print("\nSTEP 7 : ASSET RANKING\n")
+
+exec(open(
+    "src/ranking.py"
+).read())
+
+# -----------------------------
+# FINAL MESSAGE
+# -----------------------------
+print("\n================================")
+print("PROJECT COMPLETED SUCCESSFULLY")
+print("================================")
+
+print("\nGenerated Outputs:")
+
+print("1. stocks.csv")
+print("2. returns.csv")
+print("3. features.csv")
+print("4. dependency_scores.csv")
+print("5. stock_model.pkl")
+print("6. evaluation.txt")
+print("7. rankings.csv")
+print("8. heatmap.png")
